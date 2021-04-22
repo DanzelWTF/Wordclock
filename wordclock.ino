@@ -5,9 +5,9 @@
 #include <EEPROM.h>
 
 #include <Adafruit_NeoPixel.h>
-#include <time.h>             //include time.h library
-#include <Wire.h>             //include Wire.h library
-#include <WiFiUdp.h>          // UDP is needed for NTP server communication
+#include <time.h>               //include time.h library
+#include <Wire.h>               //include Wire.h library
+#include <WiFiUdp.h>            // UDP is needed for NTP server communication
 //#include <WebSocketsServer.h> // Web socket server
 
 
@@ -23,25 +23,25 @@ const char* WORD_CLOCK_VERSION = "V 1.00";
 
 
 /******************************************************************************
- *  DEFAULT values to be used if no valid SSID can be found                   *
+    DEFAULT values to be used if no valid SSID can be found
  ******************************************************************************/
 
 //Replace XXX with your wifi network data:
-const char* defWiFiNetworkName = "XXX";   
+const char* defWiFiNetworkName = "XXX";
 const char* defWiFiNetworkPwd  = "XXX";
 
 
 // Display color (RGB)
 #define factor    0.3                       // lightning factor   
-int defDisplayR       =   110   * factor;    // red color value    
-int defDisplayG       =   36    * factor;    // green color value  
-int defDisplayB       =   114   * factor;    // blue color value  
+int defDisplayR       =   110   * factor;    // red color value
+int defDisplayG       =   36    * factor;    // green color value
+int defDisplayB       =   114   * factor;    // blue color value
 
 int defDisplayDate    = 0;                  // Flag, whether to display date every 30 seconds 0=no, all other values=yes
-int defTimeZoneOffset = 1;                  // Offset for GMT
+int defTimeZoneOffset = 2;                  // Offset for GMT
 
 /******************************************************************************
- *  DEFAULT values to be used if no valid SSID can be found                   *
+    DEFAULT values to be used if no valid SSID can be found
  ******************************************************************************/
 
 int delayval = 150; // delay in milliseconds
@@ -68,18 +68,18 @@ int displayB =  0;
 
 /* Don't hardwire the IP address or we won't get the benefits of the pool.
    Lookup the IP address for the host name instead
- */
+*/
 IPAddress timeServerIP;      // IP Adress of de.pool.ntp.org time server
 const char* ntpServerName = "de.pool.ntp.org";
 
 char wiFiNetworkName[40];       // SSID of WLAN to be used
 char wiFiNetworkPwd[40];        // Password to be used
 
-int displayDate = 0;                // Flag, whether to display date every 30 seconds 0=no, all other values=yes
-int timeZoneOffset = 1;             // Offset for GMT
+int displayDate = 1;                // Flag, whether to display date every 30 seconds 0=no, all other values=yes
+int timeZoneOffset = 2;             // Offset for GMT
 
 const int NTP_PACKET_SIZE = 48;     // NTP time stamp is in the first 48 bytes of the message
-byte packetBuffer[ NTP_PACKET_SIZE]; //buffer to hold incoming and outgoing packets
+byte packetBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming and outgoing packets
 
 WiFiUDP udp;                        // A UDP instance to let us send and receive packets over UDP
 
@@ -103,7 +103,7 @@ struct parmRec
   char wifiSSID[40];  // SSID of current network
   char wifiPWD[40];   // password of current network
   int rgbR;           // LED setting Red
-  int rgbG;           // LED setting Green 
+  int rgbG;           // LED setting Green
   int rgbB;           // LED setting Blue
   int displDate;      // flag whether to display date every 30 seconds
   int tzOffset;       // time zone offset
@@ -116,10 +116,10 @@ void setup() {
   Serial.begin(115200);
   delay(1000);
   Serial.println("Start Monitor...");
-  
+
   // Read parameter from EEPROM
   readEPROM();
-  
+
   if (! rtc.begin()) {
     Serial.println("Couldn't find RTC");
     Serial.flush();
@@ -157,16 +157,16 @@ void writeEPROM() {
   memcpy(&parameter.wifiPWD,  &wiFiNetworkPwd,  sizeof(wiFiNetworkPwd));
 
   byte* p = (byte*)(void*)&parameter;
-  
+
   for (int L = 0; L < sizeof(parameter); ++L) {
-      
-      byte b = *p++;
-      EEPROM.write(L, b);
-      
-      Serial.print("Write FLASH Byte ");
-      Serial.print(L);
-      Serial.print(" = ");
-      Serial.println(b);
+
+    byte b = *p++;
+    EEPROM.write(L, b);
+
+    Serial.print("Write FLASH Byte ");
+    Serial.print(L);
+    Serial.print(" = ");
+    Serial.println(b);
   }
 
   EEPROM.commit();
@@ -179,20 +179,20 @@ void readEPROM() {
   Serial.print("Copy ");
   Serial.print(sizeof(parameter));
   Serial.println(" bytes from flash memory to EPROM buffer: ");
-  
-  // initialize space to read parameter  
-  EEPROM.begin(sizeof(parameter)); 
+
+  // initialize space to read parameter
+  EEPROM.begin(sizeof(parameter));
   delay(10);
 
   byte* p = (byte*)(void*)&parameter;
-  
+
   for (int L = 0; L < sizeof(parameter); ++L) {
-      byte b = EEPROM.read(L);
-      *p++ = b;
-      Serial.print("Read FLASH Byte ");
-      Serial.print(L);
-      Serial.print(" = ");
-      Serial.println(b);
+    byte b = EEPROM.read(L);
+    *p++ = b;
+    Serial.print("Read FLASH Byte ");
+    Serial.print(L);
+    Serial.print(" = ");
+    Serial.println(b);
   }
 
   // Copy data from parameter to process variables
@@ -210,7 +210,7 @@ void readEPROM() {
   Serial.println("** Scan Networks **");
   Serial.print("Search for ");
   Serial.println(wiFiNetworkName);
-  
+
   byte numSsid = WiFi.scanNetworks();
 
   // print the list of networks seen:
@@ -218,7 +218,7 @@ void readEPROM() {
   Serial.println(numSsid);
 
   int wifiFound = 0;
-  
+
   // print the network number and name for each network found:
   for (int thisNet = 0; thisNet < numSsid; thisNet++) {
     Serial.print(thisNet);
@@ -340,24 +340,24 @@ void getTimeFromNtpServer() {
   // Coonnect to WiFi - if possible
   wifiConnect();
 
-   // Check, whether we are connected to WLAN
+  // Check, whether we are connected to WLAN
   if ((WiFi.status() == WL_CONNECTED)) {
-    
+
     Serial.print("Get IP address of NTP server ");
     Serial.println(ntpServerName);
-  
+
     //get a random server from the pool
     WiFi.hostByName(ntpServerName, timeServerIP);
-  
+
     Serial.print("get IP address ");
     Serial.println(timeServerIP);
-  
+
     // send NTP request to time NTP server
     sendNTPpacket(timeServerIP);
-  
+
     // wait to see if a reply is available
     delay(1000);
-  
+
     for (int i = 1; i < 5; i++) {
       int cb = udp.parsePacket();
       if (!cb) {
@@ -368,10 +368,10 @@ void getTimeFromNtpServer() {
         Serial.println(cb);
         // We've received a packet, read the data from it
         udp.read(packetBuffer, NTP_PACKET_SIZE); // read the packet into the buffer
-  
+
         //the timestamp starts at byte 40 of the received packet and is four bytes,
         // or two words, long. First, esxtract the two words:
-  
+
         unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
         unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
         // combine the four bytes (two words) into a long integer
@@ -379,29 +379,30 @@ void getTimeFromNtpServer() {
         unsigned long secsSince1900 = highWord << 16 | lowWord;
         Serial.print("Seconds since Jan 1 1900 = ");
         Serial.println(secsSince1900);
-  
+
         // now convert NTP time into everyday time:
         Serial.print("Unix time = ");
         // Unix time starts on Jan 1 1970. In seconds, that's 2.208.988.800:
         const unsigned long seventyYears = 2208988800UL;
         // subtract seventy years:
         unsigned long epoch = secsSince1900 - seventyYears;
-  
+
         // add one hour for UTC+1
-        epoch = epoch + (3600 * timeZoneOffset);
+        //epoch = epoch + (3600 * timeZoneOffset);
+        epoch = epoch + (3600 * 2); // SUMMERTIME
 
         // add one second because of time exceeded between request and RTC change
         epoch = epoch + 1;
-        
+
         // print Unix time:
         Serial.println(epoch);
-  
+
         // print the hour, minute and second:
         Serial.print("The UTC+1 time is ");       // UTC is the time at Greenwich Meridian (GMT)
-  
+
         int ho = (epoch  % 86400L) / 3600;
         Serial.print(ho); // print the hour (86400 equals secs per day)
-  
+
         int mi = (epoch % 3600) / 60;
         Serial.print(':');
         if (mi < 10) {
@@ -409,7 +410,7 @@ void getTimeFromNtpServer() {
           Serial.print('0');
         }
         Serial.print(mi); // print the minute (3600 equals secs per minute)
-  
+
         int sec = epoch % 60;
         Serial.print(':');
         if (sec < 10) {
@@ -417,15 +418,15 @@ void getTimeFromNtpServer() {
           Serial.print('0');
         }
         Serial.print(sec); // print the second
-  
+
         time_t rawtime = epoch;
         struct tm * ti;
         ti = localtime (&rawtime);
-  
+
         uint16_t ye = ti->tm_year + 1900;
         uint8_t  mo = ti->tm_mon + 1;
         uint8_t  da = ti->tm_mday;
-  
+
         Serial.print("   ==  ");
         Serial.print(ye);
         Serial.print('-');
@@ -434,11 +435,11 @@ void getTimeFromNtpServer() {
         Serial.println(da);
 
         rtcWriteTime(ye, mo, da, ho, mi, sec);
-  
+
         break;
       }
     }
-   }
+  }
 }
 
 
@@ -509,11 +510,11 @@ void dunkel() {
 
 // Switch on default Text "ES IST"
 void defaultText() {
-  pixels.setPixelColor( 99, pixels.Color(displayR, displayG, displayB)); // E
-  pixels.setPixelColor(100, pixels.Color(displayR, displayG, displayB)); // S
-  pixels.setPixelColor(102, pixels.Color(displayR, displayG, displayB)); // I
-  pixels.setPixelColor(103, pixels.Color(displayR, displayG, displayB)); // S
-  pixels.setPixelColor(104, pixels.Color(displayR, displayG, displayB)); // T
+  pixels.setPixelColor( 99, pixels.Color(displayR, displayG, displayB));  // E
+  pixels.setPixelColor(100, pixels.Color(displayR, displayG, displayB));  // S
+  pixels.setPixelColor(102, pixels.Color(displayR, displayG, displayB));  // I
+  pixels.setPixelColor(103, pixels.Color(displayR, displayG, displayB));  // S
+  pixels.setPixelColor(104, pixels.Color(displayR, displayG, displayB));  // T
 }
 
 
@@ -716,15 +717,15 @@ void rtcReadTime() {
   DateTime now = rtc.now();
 
   int oldMinute = iMinute;
-  
+
   iYear  = (int)(now.year());
   iMonth = (int)(now.month());
   iDay   = (int)(now.day());
-  
+
   iHour   = (int)(now.hour());
   iMinute = (int)(now.minute());
   iSecond = (int)(now.second());
-  
+
   // Print out time if minute has changed
   if (iMinute != oldMinute) {
     Serial.print("rtcReadTime() - get time from RTC : ");
@@ -733,7 +734,7 @@ void rtcReadTime() {
     Serial.print(iMonth);
     Serial.print("-");
     Serial.print(iDay);
-  
+
     Serial.print(" ");
     Serial.print(iHour);
     Serial.print(":");
@@ -741,16 +742,16 @@ void rtcReadTime() {
     Serial.print(":");
     Serial.println(iSecond);
   }
-     
+
   // At 1 minute past 2 and 1 minute past 3 get time from NTP server
   if (  // ((iHour == 2) || (iHour == 3)) &&
-      (iMinute == 0) &&
-      (iSecond == 0)) {
-      getTimeFromNtpServer();
-      delay(1000 - delayval);
+    (iMinute == 0) &&
+    (iSecond == 0)) {
+    getTimeFromNtpServer();
+    delay(1000 - delayval);
   } else {
     // Test Code !
-    //if (((iMinute % 10) == 0) && (iSecond == 05)) getTimeFromNtpServer();
+    if (((iMinute % 30) == 0) && (iSecond == 05)) getTimeFromNtpServer();
   }
 
 }
@@ -791,7 +792,7 @@ void showTime() {
                   (minDiv == 10)));
 
   // Zwanzig
-  setLED(88, 95, ((minDiv == 4) ||
+  setLED(88, 94, ((minDiv == 4) ||
                   (minDiv == 8)));
 
   // Nach
@@ -908,12 +909,12 @@ void showIP () {
 
   Serial.print("Displaying IP address ");
   Serial.println(ip);
-    
+
   for (int x = 11; x > -75; x--) {
     dunkel();
 
     int offSet = x;
-    
+
     // Loop over 4 bytes of IP Address
     for (int idx = 0; idx < 4; idx++) {
 
@@ -933,7 +934,7 @@ void showIP () {
         offSet++;
       }
     }
-    
+
     pixels.show();
     delay (100);    // set speed of timeshift
   }
@@ -944,48 +945,48 @@ void showIP () {
 void wifiConnect() {
 
   Serial.println("Inside wifiConnect()");
-  
+
   // Check, whether we are already connected....
   if ((WiFi.status() != WL_CONNECTED)) {
-      
+
     Serial.print("Connecting to WiFi Network ");
     Serial.println(wiFiNetworkName);
-  
+
     WiFi.mode(WIFI_STA);
     WiFi.begin(wiFiNetworkName, wiFiNetworkPwd);
-  
+
     int i = 1;
     int count = 50;   // Maximum wait 25 seconds
     while ((WiFi.status() != WL_CONNECTED) && (count > 0))
     {
       dunkel();
       setLED(110, 113, (0 == 0));   // Eck LED
-      
+
       setLED(93, 93, (i == 1));     // W
       setLED(61, 61, (i == 1));     // L
       setLED(37, 37, (i == 1));     // A
       setLED(4, 4, (i == 1));       // N
-      
+
       setLED(70, 73, (i == 0));     // FUNK
-      
+
       pixels.show();
-  
+
       i = 1 - i;
       delay(750);
       Serial.print(".");
-  
+
       count--;
     }
 
     Serial.println();
 
     if ((WiFi.status() == WL_CONNECTED))
-      showIP();      
+      showIP();
   }
-  
+
   if ((WiFi.status() == WL_CONNECTED)) {
     Serial.println();
-  
+
     Serial.print("Connected, IP address: ");
     Serial.println(WiFi.localIP());
 
@@ -995,7 +996,7 @@ void wifiConnect() {
     Serial.println(udp.localPort());
   } else {
     Serial.print("Unable to connect to WiFi ");
-    Serial.println(wiFiNetworkName);  
+    Serial.println(wiFiNetworkName);
   }
 }
 
@@ -1019,10 +1020,10 @@ void loop () {
   } else {
     showTime();
   }
-  
+
   pixels.show(); // This sends the updated pixel color to the hardware.
 
   ESP.wdtFeed();  // Reset watchdog timer
-  
+
   delay(delayval); // Delay for a period of time (in milliseconds, should be 1 second).
 }
